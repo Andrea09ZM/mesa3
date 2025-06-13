@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8"> <!-- Establece codificación de caracteres UTF-8 -->
+    <title>Visor 360 Interactivo</title> <!-- Título de la pestaña del navegador -->
+
+    <!-- Carga la librería de A-Frame desde su CDN oficial -->
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Estilo CSS para el menú de botones -->
+    <style>
+      :root {
+        --primary-color: #2196F3;
+        --hover-color: #1976D2;
+        --text-color: #ffffff;
+        --menu-bg: rgba(33, 33, 33, 0.85);
+        --button-bg: rgba(255, 255, 255, 0.1);
+        --button-hover: rgba(255, 255, 255, 0.2);
+        --transition-speed: 0.3s;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Poppins', sans-serif;
+        overflow: hidden;
+      }
+ 
+      #menu {
+        position: absolute;
+        top: 50%;
+        left: 30px;
+        transform: translateY(-50%);
+        z-index: 999;
+        background: var(--menu-bg);
+        padding: 25px;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-width: 200px;
+        max-height: 400px; /* Ajustar para mostrar 6 elementos */
+        overflow-y: auto;
+        /* Estilos para la barra de desplazamiento (opcional) */
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary-color) var(--menu-bg);
+      }
+
+      #menu::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      #menu::-webkit-scrollbar-track {
+        background: var(--menu-bg);
+        border-radius: 10px;
+      }
+
+      #menu::-webkit-scrollbar-thumb {
+        background-color: var(--primary-color);
+        border-radius: 10px;
+        border: 2px solid var(--menu-bg);
+      }
+
+      .menu-title {
+        color: var(--text-color);
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 1.4em;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        position: relative;
+        padding-bottom: 10px;
+      }
+
+      .menu-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 50px;
+        height: 3px;
+        background: var(--primary-color);
+        border-radius: 2px;
+      }
+
+      button {
+        background: var(--button-bg);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--text-color);
+        padding: 15px 20px;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all var(--transition-speed) ease;
+        min-width: 180px;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      button i {
+        margin-right: 10px;
+        width: 20px;
+        text-align: center;
+      }
+
+      button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.1),
+          transparent
+        );
+        transition: 0.5s;
+      }
+
+      button:hover::before {
+        left: 100%;
+      }
+
+      button:hover {
+        background: var(--button-hover);
+        transform: translateX(5px);
+        border-color: var(--primary-color);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      button:active {
+        transform: translateX(2px);
+      }
+
+      button.active {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        box-shadow: 0 0 20px rgba(33, 150, 243, 0.3);
+      }
+
+      .controls {
+        position: absolute;
+        bottom: 30px;
+        right: 30px;
+        display: flex;
+        gap: 15px;
+        z-index: 999;
+      }
+
+      .control-button {
+        background: var(--menu-bg);
+        border: none;
+        color: var(--text-color);
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        transition: all var(--transition-speed) ease;
+        backdrop-filter: blur(10px);
+      }
+
+      .control-button:hover {
+        background: var(--primary-color);
+        transform: translateY(-2px);
+      }
+
+      .scene-info {
+        position: absolute;
+        top: 30px;
+        right: 30px;
+        background: var(--menu-bg);
+        padding: 20px;
+        border-radius: 15px;
+        color: var(--text-color);
+        font-size: 14px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        max-width: 300px;
+        line-height: 1.6;
+      }
+
+      .scene-info h3 {
+        margin: 0 0 15px 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--primary-color);
+      }
+
+      .scene-info p {
+        margin: 10px 0;
+        opacity: 0.9;
+      }
+
+      .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        backdrop-filter: blur(5px);
+      }
+
+      .loading-spinner {
+        width: 60px;
+        height: 60px;
+        border: 4px solid rgba(255, 255, 255, 0.1);
+        border-top: 4px solid var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      .loading-text {
+        color: var(--text-color);
+        margin-top: 20px;
+        font-size: 18px;
+        font-weight: 500;
+        letter-spacing: 1px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Menú con botones para cambiar de imagen -->
+    <div id="menu">
+      <div class="menu-title">Escenas Disponibles</div>
+      <button onclick="cambiarImagen('escenas/Estacionamiento.jpg')" class="active">
+        <i class="fas fa-parking"></i>Estacionamiento
+      </button>
+      <button onclick="cambiarImagen('escenas/Campo.jpg')">
+        <i class="fas fa-tree"></i>Campo
+      </button>
+      <button onclick="cambiarImagen('escenas/Laboratorio.jpg')">
+        <i class="fas fa-flask"></i>Laboratorio
+      </button>
+      <button onclick="cambiarImagen('escenas/Biblioteca.jpg')">
+        <i class="fas fa-book"></i>Biblioteca
+      </button>
+      <button onclick="cambiarImagen('escenas/edificio_h.jpg')">
+        <i class="fas fa-building"></i>Edificio H
+      </button>
+      <button onclick="cambiarImagen('escenas/Lab_Bioquimica.jpg')">
+        <i class="fas fa-microscope"></i>Laboratorio Bioquímica
+      </button>
+      <button onclick="cambiarImagen('escenas/Lab_Ambiental.jpg')">
+        <i class="fas fa-leaf"></i>Laboratorio Ambiental
+      </button>
+      <button onclick="cambiarImagen('escenas/Centro_computo.jpg')">
+        <i class="fas fa-desktop"></i>Centro de Cómputo
+      </button>
+      <button onclick="cambiarImagen('escenas/Lab_Electro.jpg')">
+        <i class="fas fa-robot"></i>Laboratorio Electrónica
+      </button>
+      <button onclick="cambiarImagen('escenas/Explanada.jpg')">
+        <i class="fas fa-users"></i>Explanada Principal
+      </button>
+      <button onclick="cambiarImagen('escenas/Sala_A.jpg')">
+        <i class="fas fa-chalkboard-teacher"></i>Sala de Conferencias A
+      </button>
+      <button onclick="cambiarImagen('escenas/Interior_de_posgrado.jpg')">
+        <i class="fas fa-graduation-cap"></i>Interior Posgrado
+      </button>
+      <button onclick="cambiarImagen('escenas/Exterior_de_posgrado.jpg')">
+        <i class="fas fa-university"></i>Exterior Posgrado
+      </button>
+      <button onclick="cambiarImagen('escenas/edificio_3_pisos.JPG')">
+        <i class="fas fa-building"></i>Edificio de 3 Pisos
+      </button>
+      <button onclick="cambiarImagen('escenas/escaleras.jpg')">
+        <i class="fas fa-stairs"></i>Escaleras
+      </button>
+    </div>
+
+    <div class="controls">
+      <button class="control-button" onclick="toggleFullscreen()">
+        <i class="fas fa-expand"></i>
+      </button>
+    </div>
+
+    <div class="scene-info" id="sceneInfo">
+      <h3>Estacionamiento</h3>
+      <p>El estacionamiento principal cuenta con 100 espacios para vehículos, distribuidos en dos niveles. Incluye áreas especiales para personas con discapacidad y estacionamiento para visitantes. El área está completamente iluminada y cuenta con sistema de vigilancia las 24 horas.</p>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+      <div style="text-align: center;">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Cargando escena...</div>
+      </div>
+    </div>
+
+    <!-- Escena principal de A-Frame -->
+    <a-scene>
+      <!-- Configuración para Meta Quest 2 -->
+      <a-entity id="rig" movement-controls="fly: true; speed: 0.5">
+        <a-entity id="camera" position="0 1.6 0" camera look-controls="reverseMouseDrag: true">
+          <a-entity cursor="fuse: false; rayOrigin: mouse"
+                    raycaster="objects: .clickable"
+                    position="0 0 -1"
+                    geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
+                    material="color: white; shader: flat">
+          </a-entity>
+        </a-entity>
+      </a-entity>
+
+      <!-- Escena 360 -->
+      <a-sky id="panorama" src="escenas/Estacionamiento.jpg" rotation="0 -130 0"></a-sky>
+
+      <!-- Controles VR -->
+      <a-entity id="leftHand" oculus-touch-controls="hand: left"></a-entity>
+      <a-entity id="rightHand" oculus-touch-controls="hand: right"></a-entity>
+    </a-scene>
+
+    <!-- Script en JavaScript para cambiar la imagen panorámica -->
+    <script>
+      // Lista de imágenes a precargar
+      const imagenes = [
+        'escenas/Estacionamiento.jpg',
+        'escenas/Campo.jpg',
+        'escenas/Laboratorio.jpg',
+        'escenas/Biblioteca.jpg',
+        'escenas/edificio_h.jpg',
+        'escenas/Lab_Bioquimica.jpg',
+        'escenas/Lab_Ambiental.jpg',
+        'escenas/Centro_computo.jpg',
+        'escenas/Lab_Electro.jpg',
+        'escenas/Explanada.jpg',
+        'escenas/Sala_A.jpg',
+        'escenas/Interior_de_posgrado.jpg',
+        'escenas/Exterior_de_posgrado.jpg',
+        'escenas/edificio_3_pisos.JPG',
+        'escenas/escaleras.jpg'
+      ];
+
+      const sceneInfo = {
+        'escenas/Estacionamiento.jpg': {
+          name: 'Estacionamiento',
+          description: 'El estacionamiento principal cuenta con 100 espacios para vehículos, distribuidos en dos niveles. Incluye áreas especiales para personas con discapacidad y estacionamiento para visitantes. El área está completamente iluminada y cuenta con sistema de vigilancia las 24 horas.'
+        },
+        'escenas/Campo.jpg': {
+          name: 'Campo Deportivo',
+          description: 'El campo deportivo es un espacio al aire libre de 5,000 metros cuadrados. Cuenta con canchas de fútbol, básquetbol y voleibol. El área incluye gradas para espectadores, iluminación nocturna y vestidores. Es el lugar ideal para actividades deportivas y eventos recreativos.'
+        },
+        'escenas/Laboratorio.jpg': {
+          name: 'Laboratorio de Investigación',
+          description: 'El laboratorio de investigación está equipado con tecnología de última generación. Cuenta con 20 estaciones de trabajo, equipos de análisis avanzados y áreas especializadas para diferentes tipos de investigación. El espacio está diseñado para promover la colaboración y la innovación.'
+        },
+        'escenas/Biblioteca.jpg': {
+          name: 'Biblioteca Central',
+          description: 'La biblioteca central alberga más de 50,000 títulos en diferentes formatos. Ofrece espacios de estudio individual y grupal, salas de cómputo, y una colección digital extensa. El diseño arquitectónico promueve la concentración y el aprendizaje, con áreas específicas para diferentes tipos de estudio.'
+        },
+        'escenas/edificio_h.jpg': {
+          name: 'Edificio H',
+          description: 'El Edificio H es el núcleo de las facultades de ingeniería, albergando aulas modernas, laboratorios de simulación y un auditorio principal. Su diseño arquitectónico facilita el aprendizaje colaborativo y la investigación en diversas disciplinas de ingeniería.'
+        },
+        'escenas/Lab_Bioquimica.jpg': {
+          name: 'Laboratorio de Bioquímica',
+          description: 'El Laboratorio de Bioquímica está equipado con instrumentos especializados para la investigación y el análisis de procesos biológicos y químicos. Incluye áreas para cromatografía, espectroscopia y cultivos celulares, ideal para estudios avanzados en ciencias de la vida.'
+        },
+        'escenas/Lab_Ambiental.jpg': {
+          name: 'Laboratorio Ambiental',
+          description: 'El Laboratorio Ambiental se enfoca en el análisis de muestras de agua, suelo y aire, utilizando equipos de alta precisión para monitorear la calidad ambiental. Es un espacio clave para proyectos de sostenibilidad y estudios de impacto ambiental.'
+        },
+        'escenas/Centro_computo.jpg': {
+          name: 'Centro de Cómputo',
+          description: 'El Centro de Cómputo ofrece un entorno moderno con estaciones de trabajo de alto rendimiento, acceso a software especializado y conexión a internet de alta velocidad. Ideal para proyectos de programación, diseño y análisis de datos.'
+        },
+        'escenas/Lab_Electro.jpg': {
+          name: 'Laboratorio de Electrónica',
+          description: 'El Laboratorio de Electrónica cuenta con equipos de medición, prototipado y simulación para el diseño y prueba de circuitos electrónicos. Es un espacio fundamental para la experimentación en robótica, telecomunicaciones y sistemas embebidos.'
+        },
+        'escenas/Explanada.jpg': {
+          name: 'Explanada Principal',
+          description: 'La Explanada Principal es un vasto espacio al aire libre, ideal para eventos masivos, reuniones estudiantiles y actividades recreativas. Con áreas verdes y asientos, es un punto de encuentro central para la comunidad.'
+        },
+        'escenas/Sala_A.jpg': {
+          name: 'Sala de Conferencias A',
+          description: 'La Sala de Conferencias A es un espacio versátil equipado con tecnología audiovisual de punta, ideal para presentaciones, seminarios y talleres. Cuenta con capacidad para 80 personas y un sistema de sonido e iluminación profesional.'
+        },
+        'escenas/Interior_de_posgrado.jpg': {
+          name: 'Interior de Posgrado',
+          description: 'El interior del área de posgrado ofrece un ambiente tranquilo y propicio para el estudio avanzado. Incluye cubículos de estudio, salas de reuniones para tesis y acceso a recursos especializados para investigadores.'
+        },
+        'escenas/Exterior_de_posgrado.jpg': {
+          name: 'Exterior de Posgrado',
+          description: 'El exterior del edificio de posgrado presenta jardines, áreas de descanso y espacios para networking, creando un ambiente relajado para estudiantes y profesores. Es un lugar ideal para la reflexión y el intercambio de ideas.'
+        },
+        'escenas/edificio_3_pisos.JPG': {
+          name: 'Edificio de 3 Pisos',
+          description: 'El Edificio de 3 Pisos alberga una variedad de aulas, oficinas administrativas y espacios de colaboración. Su diseño moderno y funcionalidad lo convierten en un centro educativo y administrativo clave, con vistas panorámicas desde los pisos superiores.'
+        },
+        'escenas/escaleras.jpg': {
+          name: 'Escaleras',
+          description: 'Las escaleras son una estructura para el acceso entre diferentes niveles o pisos.'
+        }
+      };
+
+      let currentZoom = 1;
+
+      // Precarga de imágenes
+      function precargarImagenes() {
+        imagenes.forEach(src => {
+          const img = new Image();
+          img.src = src;
+        });
+      }
+
+      // Mostrar/ocultar overlay de carga
+      function toggleLoading(show) {
+        const overlay = document.getElementById('loadingOverlay');
+        overlay.style.display = show ? 'flex' : 'none';
+      }
+
+      // Función mejorada para cambiar la imagen
+      function cambiarImagen(src) {
+        toggleLoading(true);
+        
+        // Crear una nueva imagen para precargar
+        const img = new Image();
+        img.onload = function() {
+          document.getElementById('panorama').setAttribute('src', src);
+          toggleLoading(false);
+          
+          // Actualizar el estado activo de los botones
+          const buttons = document.querySelectorAll('button');
+          buttons.forEach(button => {
+            button.classList.remove('active');
+            if (button.onclick.toString().includes(src)) {
+              button.classList.add('active');
+            }
+          });
+
+          // Actualizar información de la escena
+          const info = sceneInfo[src];
+          document.querySelector('.scene-info h3').textContent = info.name;
+          document.querySelector('.scene-info p').textContent = info.description;
+        };
+
+        img.onerror = function() {
+          console.error('Error al cargar la imagen:', src);
+          toggleLoading(false);
+          alert('Error al cargar la imagen. Por favor, intente nuevamente.');
+        };
+
+        img.src = src;
+      }
+
+      function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen();
+        } else {
+          document.exitFullscreen();
+        }
+      }
+
+      function zoomIn() {
+        if (currentZoom < 2) {
+          currentZoom += 0.1;
+          document.getElementById('panorama').setAttribute('scale', `${currentZoom} ${currentZoom} ${currentZoom}`);
+        }
+      }
+
+      function zoomOut() {
+        if (currentZoom > 0.5) {
+          currentZoom -= 0.1;
+          document.getElementById('panorama').setAttribute('scale', `${currentZoom} ${currentZoom} ${currentZoom}`);
+        }
+      }
+
+      // Precargar imágenes cuando se carga la página
+      window.addEventListener('load', precargarImagenes);
+    </script>
+  </body>
+</html>
